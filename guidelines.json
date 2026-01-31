@@ -1,0 +1,219 @@
+{
+  "project": {
+    "name": "MagenAI",
+    "version": "1.2",
+    "description": "Chrome Extension that protects sensitive data from being sent to AI models",
+    "target": "ChatGPT (chatgpt.com)",
+    "type": "Chrome Extension Manifest V3"
+  },
+  "architecture": {
+    "frontend": {
+      "framework": "React 19.2.3",
+      "language": "TypeScript 5.8.2",
+      "buildTool": "Vite 6.2.0",
+      "uiLibrary": "Lucide React 0.562.0",
+      "jsx": "react-jsx"
+    },
+    "runtime": {
+      "environment": "Chrome Browser",
+      "manifestVersion": 3,
+      "permissions": [
+        "activeTab",
+        "tabs",
+        "scripting",
+        "storage",
+        "sidePanel"
+      ],
+      "hostPermissions": [
+        "*://chatgpt.com/*"
+      ]
+    },
+    "components": {
+      "backgroundWorker": "background.js",
+      "contentScript": "content.js",
+      "sidePanel": "index.html",
+      "popup": "popup.js",
+      "reactEntry": "index.tsx",
+      "mainComponent": "App.tsx"
+    }
+  },
+  "directory_structure": {
+    "root": "chrome_app/",
+    "folders": {
+      "src": "React source files (TypeScript/TSX)",
+      "docs": "Documentation and error analysis",
+      "dist": "Production build output (generated)"
+    },
+    "key_files": {
+      "manifest.json": "Extension configuration",
+      "package.json": "Dependencies and scripts",
+      "tsconfig.json": "TypeScript compiler settings",
+      "vite.config.ts": "Vite build configuration",
+      "index.tsx": "React entry point",
+      "App.tsx": "Main React component",
+      "popup.js": "Popup interface logic",
+      "background.js": "Service worker",
+      "content.js": "Content script for ChatGPT pages",
+      "metadata.json": "Extension metadata"
+    }
+  },
+  "development": {
+    "prerequisites": [
+      "Node.js",
+      "npm"
+    ],
+    "setup_steps": [
+      {
+        "step": 1,
+        "action": "npm install",
+        "description": "Install all dependencies"
+      },
+      {
+        "step": 2,
+        "action": "Set GEMINI_API_KEY in .env.local",
+        "description": "Configure API key for Gemini API"
+      },
+      {
+        "step": 3,
+        "action": "npm run dev",
+        "description": "Start development server on port 3000"
+      }
+    ],
+    "available_scripts": {
+      "dev": "Start development server with hot reload (port 3000, host 0.0.0.0)",
+      "build": "Create optimized production build",
+      "preview": "Preview production build locally"
+    }
+  },
+  "configuration": {
+    "typescript": {
+      "target": "ES2022",
+      "module": "ESNext",
+      "lib": [
+        "ES2022",
+        "DOM",
+        "DOM.Iterable"
+      ],
+      "jsx": "react-jsx",
+      "moduleResolution": "bundler",
+      "isolatedModules": true,
+      "skipLibCheck": true,
+      "allowJs": true,
+      "experimentalDecorators": true,
+      "pathAliases": {
+        "@/*": "./*"
+      }
+    },
+    "vite": {
+      "devServer": {
+        "port": 3000,
+        "host": "0.0.0.0"
+      },
+      "plugins": [
+        "react"
+      ],
+      "environmentVariables": [
+        "GEMINI_API_KEY"
+      ]
+    }
+  },
+  "common_issues": {
+    "tab_switching_error": {
+      "error": "Uncaught ReferenceError: renderStore is not defined",
+      "location": "popup.js line 108",
+      "cause": "Functions renderStore and renderDashboard were accidentally deleted during Find/Replace operation",
+      "impact": "Extension crashes immediately upon opening",
+      "solution": "Restore missing functions and ensure they are called in DOMContentLoaded event",
+      "prevention": [
+        "Only replace specific functions, not entire file content",
+        "Verify function definitions exist before calling them",
+        "Keep backups before large Find/Replace operations",
+        "Use version control to track changes"
+      ]
+    },
+    "debugging_steps": [
+      "Right-click extension icon → 'Inspect Popup'",
+      "Check Console tab for red errors (ReferenceError, TypeError)",
+      "Verify all function definitions are present in the file",
+      "Ensure HTML element IDs match JavaScript references",
+      "Check that event listeners are inside DOMContentLoaded block"
+    ],
+    "html_javascript_mismatch": {
+      "problem": "JavaScript references undefined HTML elements",
+      "solution": [
+        "Verify every ID used in JavaScript exists in index.html",
+        "Ensure IDs are spelled consistently",
+        "Check that HTML elements are loaded before JavaScript executes"
+      ]
+    }
+  },
+  "code_patterns": {
+    "function_restoration": {
+      "description": "Pattern for organizing initialization and function definitions",
+      "structure": [
+        "DOMContentLoaded event listener calls initialization functions",
+        "All functions defined at module level (not nested)",
+        "Clear separation between UI rendering and state management"
+      ]
+    }
+  },
+  "security": {
+    "data_interception": {
+      "hostPermissions": "Explicit permission for chatgpt.com only",
+      "isolation": "Content scripts run in isolated context",
+      "sidePanel": "Isolated UI context"
+    },
+    "api_key_management": {
+      "storage": ".env.local (never commit to version control)",
+      "bundling": "Environment variables bundled at build time",
+      "runtime": "Use Chrome's storage API for sensitive runtime data"
+    },
+    "content_security": {
+      "accessible_resources": "modal.css only",
+      "javascript": "Extension-isolated, not accessible to external pages",
+      "crossOrigin": "Restricted by manifest permissions"
+    }
+  },
+  "deployment": {
+    "build_process": [
+      "Run npm run build",
+      "Creates optimized bundle in dist/ directory",
+      "Vite handles module resolution and bundling"
+    ],
+    "distribution": [
+      "Package contents of build directory",
+      "Submit to Chrome Web Store",
+      "Update version in manifest.json for new releases",
+      "Maintain changelog for user-facing updates"
+    ],
+    "version_management": "Follow semantic versioning, update manifest.json for releases"
+  },
+  "testing_qa": {
+    "approach": [
+      "Manual testing in development mode",
+      "Browser DevTools for debugging",
+      "Console inspection for errors",
+      "Network tab for API call monitoring"
+    ],
+    "quality_checks": [
+      "Verify all HTML element IDs match JavaScript",
+      "Test function availability before calling",
+      "Check event listener attachment timing",
+      "Validate environment variables are loaded"
+    ]
+  },
+  "documentation": {
+    "location": "chrome_app/docs/",
+    "format": "Markdown with code examples",
+    "includes": [
+      "Root cause analysis",
+      "Prevention guidelines",
+      "Step-by-step solutions"
+    ],
+    "code_comments": [
+      "Document non-obvious logic",
+      "Explain why, not just what",
+      "Keep comments up-to-date with code changes"
+    ]
+  }
+}

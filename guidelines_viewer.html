@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagenAI Guidelines Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            background: none;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            min-height: 600px;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Markdown Content */
+        .markdown-content h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            margin-top: 30px;
+        }
+
+        .markdown-content h2 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .markdown-content h3 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .markdown-content p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .markdown-content li {
+            margin-bottom: 8px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .markdown-content code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        .markdown-content pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .markdown-content pre code {
+            color: #333;
+            padding: 0;
+            background: none;
+        }
+
+        /* JSON Collapsible */
+        .json-container {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.95em;
+        }
+
+        .json-item {
+            margin-left: 20px;
+            margin-bottom: 2px;
+        }
+
+        .json-toggle {
+            cursor: pointer;
+            user-select: none;
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .json-toggle:hover {
+            color: #764ba2;
+        }
+
+        .json-key {
+            color: #764ba2;
+            font-weight: 600;
+            display: inline;
+        }
+
+        .json-value-string {
+            color: #2ecc71;
+        }
+
+        .json-value-number {
+            color: #3498db;
+        }
+
+        .json-value-boolean {
+            color: #e74c3c;
+        }
+
+        .json-value-null {
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+        .json-array, .json-object {
+            display: inline;
+        }
+
+        .json-bracket {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .json-collapsed .json-children {
+            display: none;
+        }
+
+        .json-children {
+            display: block;
+        }
+
+        /* Controls */
+        .controls {
+            padding: 15px 30px;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #dcdde1;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.95em;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                flex: 1 1 50%;
+            }
+
+            .tab-content {
+                min-height: auto;
+            }
+        }
+
+        /* Utility */
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 MagenAI Guidelines</h1>
+            <p>Complete project documentation in three formats</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('full')">📄 Full Guidelines</button>
+            <button class="tab-button" onclick="switchTab('summary')">📋 Summary</button>
+            <button class="tab-button" onclick="switchTab('json')">🔍 JSON (Collapsible)</button>
+        </div>
+
+        <!-- Full Guidelines Tab -->
+        <div id="full" class="tab-content active">
+            <div class="markdown-content">
+                <h1>MagenAI Project - Full Guidelines</h1>
+
+                <h2>Overview</h2>
+                <p>MagenAI is a Chrome Extension (v1.2) designed to protect sensitive data from being sent to AI models, specifically ChatGPT. The extension intercepts requests and prevents sensitive information leakage.</p>
+
+                <h2>1. Project Architecture</h2>
+                <h3>Structure</h3>
+                <ul>
+                    <li><strong>Frontend</strong>: React 19 with TypeScript</li>
+                    <li><strong>Build Tool</strong>: Vite 6 with React plugin</li>
+                    <li><strong>Runtime</strong>: Chrome Extension Manifest V3</li>
+                    <li><strong>Language</strong>: TypeScript, JavaScript, and React</li>
+                </ul>
+
+                <h3>Key Technologies</h3>
+                <ul>
+                    <li>React DOM for UI rendering</li>
+                    <li>Lucide React for UI icons</li>
+                    <li>TypeScript 5.8.2 for type safety</li>
+                    <li>Vite for fast development and production builds</li>
+                </ul>
+
+                <h2>2. Chrome Extension Configuration</h2>
+                <h3>Manifest Details</h3>
+                <ul>
+                    <li><strong>Version</strong>: 3 (latest Chrome standard)</li>
+                    <li><strong>Permissions</strong>: activeTab, tabs, scripting, storage, sidePanel</li>
+                    <li><strong>Host Permissions</strong>: Specifically targets <code>*://chatgpt.com/*</code></li>
+                    <li><strong>Side Panel</strong>: Default UI shown in index.html</li>
+                    <li><strong>Action</strong>: Custom title "Open MagenAI"</li>
+                </ul>
+
+                <h3>Key Components</h3>
+                <ol>
+                    <li><strong>Background Service Worker</strong>: <code>background.js</code> - Handles background tasks and messaging</li>
+                    <li><strong>Content Scripts</strong>: <code>content.js</code> - Runs on chatgpt.com pages to intercept data</li>
+                    <li><strong>Side Panel UI</strong>: React-based interface in <code>index.html</code></li>
+                    <li><strong>Web Accessible Resources</strong>: <code>modal.css</code> accessible on ChatGPT domain</li>
+                </ol>
+
+                <h2>3. Development Setup</h2>
+                <h3>Prerequisites</h3>
+                <ul>
+                    <li>Node.js (required)</li>
+                    <li>npm (comes with Node.js)</li>
+                </ul>
+
+                <h3>Installation Steps</h3>
+                <ol>
+                    <li>Install dependencies: <code>npm install</code></li>
+                    <li>Configure API key: Set <code>GEMINI_API_KEY</code> in <code>.env.local</code></li>
+                    <li>Start development: <code>npm run dev</code> (runs on port 3000)</li>
+                </ol>
+
+                <h3>Available Scripts</h3>
+                <ul>
+                    <li><code>npm run dev</code> - Start Vite development server (port 3000, host 0.0.0.0)</li>
+                    <li><code>npm run build</code> - Create production build</li>
+                    <li><code>npm run preview</code> - Preview production build locally</li>
+                </ul>
+
+                <h2>4. Common Issues and Troubleshooting</h2>
+                <h3>Tab Switching Error</h3>
+                <div class="highlight">
+                    <strong>Problem</strong>: <code>Uncaught ReferenceError: renderStore is not defined</code>
+                    <br><strong>Root Cause</strong>: Functions <code>renderStore</code> and <code>renderDashboard</code> were accidentally deleted from <code>popup.js</code>
+                    <br><strong>Location</strong>: <code>popup.js</code> line 108
+                </div>
+
+                <h3>Debugging Chrome Extension</h3>
+                <ol>
+                    <li>Right-click extension icon → "Inspect Popup"</li>
+                    <li>Check Console tab for red errors (ReferenceError, TypeError, etc.)</li>
+                    <li>Ensure all function definitions are present in the file</li>
+                    <li>Verify HTML element IDs match JavaScript references</li>
+                    <li>Check that event listeners are inside <code>DOMContentLoaded</code> block</li>
+                </ol>
+
+                <h2>5. Security Considerations</h2>
+                <h3>Data Interception</h3>
+                <ul>
+                    <li>Extension has explicit host permission for <code>chatgpt.com</code> only</li>
+                    <li>Content scripts run in isolated context</li>
+                    <li>Side panel provides isolated UI context</li>
+                </ul>
+
+                <h3>API Key Management</h3>
+                <ul>
+                    <li>Store <code>GEMINI_API_KEY</code> in <code>.env.local</code> (never commit to version control)</li>
+                    <li>Environment variables are bundled at build time</li>
+                    <li>Use Chrome's storage API for sensitive runtime data</li>
+                </ul>
+
+                <h2>6. Deployment and Distribution</h2>
+                <h3>Build Process</h3>
+                <ol>
+                    <li>Run <code>npm run build</code></li>
+                    <li>Creates optimized bundle in <code>dist/</code> directory</li>
+                    <li>Vite handles all module resolution and bundling</li>
+                </ol>
+
+                <h3>Extension Distribution</h3>
+                <ul>
+                    <li>Package contents of build directory</li>
+                    <li>Submit to Chrome Web Store</li>
+                    <li>Update version in <code>manifest.json</code> for new releases</li>
+                    <li>Maintain changelog for user-facing updates</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Summary Tab -->
+        <div id="summary" class="tab-content">
+            <div class="markdown-content">
+                <h1>MagenAI Project - Summary Guidelines</h1>
+
+                <h2>Project Overview</h2>
+                <p>A Chrome Extension (v1.2) that protects sensitive data from being sent to AI models like ChatGPT.</p>
+
+                <h2>Architecture & Technology Stack</h2>
+                <p><strong>Tech</strong>: React 19, TypeScript 5.8.2, Vite 6, Chrome Manifest V3, Lucide React icons.</p>
+
+                <h2>Extension Configuration</h2>
+                <p><strong>Target</strong>: ChatGPT (chatgpt.com) - includes service worker, content scripts, side panel UI, and CSS resources.</p>
+
+                <h2>Installation & Development</h2>
+                <p><strong>Setup</strong>: Install Node.js, run <code>npm install</code>, set GEMINI_API_KEY in .env.local, then <code>npm run dev</code> on port 3000.</p>
+
+                <h2>Build & Deployment</h2>
+                <p><strong>Commands</strong>: <code>npm run dev</code> (development), <code>npm run build</code> (production), <code>npm run preview</code> (local preview).</p>
+
+                <h2>TypeScript Settings</h2>
+                <p><strong>Target</strong>: ES2022 with JSX support, path aliases (@/*), and module bundler resolution for imports.</p>
+
+                <h2>Vite Configuration</h2>
+                <p><strong>Dev Server</strong>: Port 3000 on 0.0.0.0, environment variables loaded from .env.local, React hot reload enabled.</p>
+
+                <h2>Tab Switching Error (Common Issue)</h2>
+                <p><strong>Problem</strong>: Missing <code>renderStore</code> and <code>renderDashboard</code> functions in popup.js cause immediate crash.<br>
+                <strong>Fix</strong>: Restore deleted functions and ensure they're called in DOMContentLoaded event listener.</p>
+
+                <h2>Debugging Chrome Extensions</h2>
+                <p><strong>Method</strong>: Right-click extension → "Inspect Popup", check Console for red errors, verify HTML IDs match JavaScript references.</p>
+
+                <h2>Code Organization</h2>
+                <p><strong>Pattern</strong>: Keep initialization in DOMContentLoaded, define all functions at module level, separate UI rendering from state management.</p>
+
+                <h2>Security Best Practices</h2>
+                <p><strong>Key Points</strong>: Store API keys in .env.local only, restrict host permissions to chatgpt.com, keep JavaScript isolated from external pages.</p>
+
+                <h2>React & UI Components</h2>
+                <p><strong>Framework</strong>: React 19.2.3 with TypeScript, Lucide React icons, functional components with hooks.</p>
+
+                <h2>Deployment Process</h2>
+                <p><strong>Steps</strong>: Run <code>npm run build</code>, package dist/ folder, update manifest version, submit to Chrome Web Store.</p>
+
+                <h2>Testing & QA</h2>
+                <p><strong>Approach</strong>: Manual testing in DevTools, console inspection, network monitoring, verify HTML-JavaScript element matching.</p>
+
+                <h2>Documentation Standards</h2>
+                <p><strong>Location</strong>: chrome_app/docs/ - include root cause, prevention tips, and step-by-step solutions for errors.</p>
+            </div>
+        </div>
+
+        <!-- JSON Tab -->
+        <div id="json" class="tab-content">
+            <div class="controls">
+                <button class="btn btn-primary" onclick="expandAll()">📂 Expand All</button>
+                <button class="btn btn-secondary" onclick="collapseAll()">📁 Collapse All</button>
+                <input type="text" class="search-box" placeholder="Search in JSON..." onkeyup="filterJSON(this.value)">
+                <button class="btn btn-secondary" onclick="copyJSON()">📋 Copy JSON</button>
+            </div>
+            <div class="json-container" id="jsonViewer"></div>
+        </div>
+    </div>
+
+    <script>
+        // JSON Data
+        const guidelinesJSON = {
+            "project": {
+                "name": "MagenAI",
+                "version": "1.2",
+                "description": "Chrome Extension that protects sensitive data from being sent to AI models",
+                "target": "ChatGPT (chatgpt.com)",
+                "type": "Chrome Extension Manifest V3"
+            },
+            "architecture": {
+                "frontend": {
+                    "framework": "React 19.2.3",
+                    "language": "TypeScript 5.8.2",
+                    "buildTool": "Vite 6.2.0",
+                    "uiLibrary": "Lucide React 0.562.0",
+                    "jsx": "react-jsx"
+                },
+                "runtime": {
+                    "environment": "Chrome Browser",
+                    "manifestVersion": 3,
+                    "permissions": ["activeTab", "tabs", "scripting", "storage", "sidePanel"],
+                    "hostPermissions": ["*://chatgpt.com/*"]
+                },
+                "components": {
+                    "backgroundWorker": "background.js",
+                    "contentScript": "content.js",
+                    "sidePanel": "index.html",
+                    "popup": "popup.js"
+                }
+            },
+            "development": {
+                "prerequisites": ["Node.js", "npm"],
+                "setup": [
+                    "npm install",
+                    "Set GEMINI_API_KEY in .env.local",
+                    "npm run dev (port 3000)"
+                ],
+                "scripts": {
+                    "dev": "Start development server",
+                    "build": "Create production build",
+                    "preview": "Preview production build"
+                }
+            },
+            "common_issues": {
+                "tab_switching_error": {
+                    "error": "ReferenceError: renderStore is not defined",
+                    "location": "popup.js line 108",
+                    "cause": "Functions deleted during Find/Replace operation",
+                    "solution": "Restore missing functions in DOMContentLoaded"
+                },
+                "debugging_steps": [
+                    "Right-click extension → Inspect Popup",
+                    "Check Console for errors",
+                    "Verify function definitions exist",
+                    "Match HTML IDs with JavaScript references"
+                ]
+            },
+            "security": {
+                "data_interception": "Explicit permission for chatgpt.com only",
+                "isolation": "Content scripts run in isolated context",
+                "api_keys": "Store in .env.local, never commit to version control"
+            },
+            "deployment": {
+                "build": "npm run build",
+                "output": "dist/ directory",
+                "distribution": "Chrome Web Store"
+            }
+        };
+
+        // Render JSON
+        function renderJSON() {
+            const viewer = document.getElementById('jsonViewer');
+            viewer.innerHTML = renderValue(guidelinesJSON, 0);
+        }
+
+        function renderValue(value, depth, key = '') {
+            if (value === null) return `<span class="json-value-null">null</span>`;
+            if (typeof value === 'boolean') return `<span class="json-value-boolean">${value}</span>`;
+            if (typeof value === 'number') return `<span class="json-value-number">${value}</span>`;
+            if (typeof value === 'string') return `<span class="json-value-string">"${value}"</span>`;
+
+            if (Array.isArray(value)) {
+                const id = `json-${depth}-${key}`;
+                const items = value.map((item, i) => renderValue(item, depth + 1)).join(',<br>');
+                return `<span class="json-array">
+                    <span class="json-toggle" onclick="toggleItem('${id}')">▼</span>
+                    <span class="json-bracket">[</span>
+                    <div class="json-children" id="${id}">
+                        <div style="margin-left: 20px;">${items}</div>
+                    </div>
+                    <span class="json-bracket">]</span>
+                </span>`;
+            }
+
+            if (typeof value === 'object') {
+                const id = `json-${depth}-${key}`;
+                const items = Object.keys(value).map(k =>
+                    `<div class="json-item" id="${id}-${k}">
+                        <span class="json-key">"${k}"</span>: ${renderValue(value[k], depth + 1, k)}
+                    </div>`
+                ).join('');
+                return `<span class="json-object">
+                    <span class="json-toggle" onclick="toggleItem('${id}')">▼</span>
+                    <span class="json-bracket">{</span>
+                    <div class="json-children" id="${id}">
+                        ${items}
+                    </div>
+                    <span class="json-bracket">}</span>
+                </span>`;
+            }
+
+            return value;
+        }
+
+        function toggleItem(id) {
+            const element = document.getElementById(id);
+            const toggle = event.target;
+            element.parentElement.classList.toggle('json-collapsed');
+            toggle.textContent = toggle.textContent === '▼' ? '▶' : '▼';
+        }
+
+        function expandAll() {
+            document.querySelectorAll('.json-children').forEach(el => {
+                el.parentElement.classList.remove('json-collapsed');
+            });
+            document.querySelectorAll('.json-toggle').forEach(el => {
+                el.textContent = '▼';
+            });
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.json-children').forEach(el => {
+                el.parentElement.classList.add('json-collapsed');
+            });
+            document.querySelectorAll('.json-toggle').forEach(el => {
+                el.textContent = '▶';
+            });
+        }
+
+        function filterJSON(searchText) {
+            const items = document.querySelectorAll('.json-item, .json-array, .json-object');
+            items.forEach(item => {
+                const text = item.textContent;
+                item.style.opacity = text.toLowerCase().includes(searchText.toLowerCase()) ? '1' : '0.3';
+            });
+        }
+
+        function copyJSON() {
+            const json = JSON.stringify(guidelinesJSON, null, 2);
+            navigator.clipboard.writeText(json).then(() => {
+                alert('JSON copied to clipboard!');
+            });
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'json') {
+                renderJSON();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // JSON will be rendered when tab is clicked
+        });
+    </script>
+</body>
+</html>
